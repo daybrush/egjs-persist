@@ -5,9 +5,9 @@ var isPersistNeeded = eg.Persist.isNeeded();
 var type = typeof performance !== "undefined" && performance.navigation && performance.navigation.type;
 
 
-window.onpopstate = function () {
+window.addEventListener("popstate", function () {
 	update("true");
-}
+});
 function update(pop) {
 	var depths = (eg.Persist.StorageManager.getStateByKey("state___persist___", "depths") || []).map(function (url) {
 		var dirs =  url.split("/");

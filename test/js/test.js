@@ -5,15 +5,20 @@ var isPersistNeeded = eg.Persist.isNeeded();
 var type = typeof performance !== "undefined" && performance.navigation && performance.navigation.type;
 
 
-function update() {
+window.onpopstate = function () {
+	update("true");
+}
+function update(pop) {
 	var depths = (eg.Persist.StorageManager.getStateByKey("state___persist___", "depths") || []).map(function (url) {
 		var dirs =  url.split("/");
 	
 		return dirs[dirs.length - 1];
 	}).join(" -> ");
 
+
+	
 	document.querySelector("#testlog").innerHTML =
-		"isPersistNeeded : " + isPersistNeeded + "<br/>" + 
+		"isPersistNeeded : " + isPersistNeeded + "; pop : " + pop + "<br/>" + 
 		"href : " + location.href + "<br/>" +
 		"path : " + location.pathname + "<br/>" + 
 		"length : " + depths + "<br/>" + 

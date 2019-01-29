@@ -44,7 +44,8 @@ NewsLoader.prototype._appendNews = function() {
      */
     if(isPersistNeeded) {
 		this.persist.set("html", this.$ListContainer.html());  	
-    }
+		}
+		update();
 };
 
 var news1 = new NewsLoader("newsLoader1");

@@ -14,6 +14,8 @@ function update() {
 
 	document.querySelector("#testlog").innerHTML =
 		"isPersistNeeded : " + isPersistNeeded + "<br/>" + 
+		"href : " + location.href + "<br/>" +
+		"path : " + location.pathname + "<br/>" + 
 		"length : " + depths + "<br/>" + 
 		"last : " + eg.Persist.StorageManager.getStateByKey("state___persist___", "lastUrl") + "<br/>" + 
 		"type : " + type  + "<br/>" + 

@@ -234,6 +234,27 @@ Copyright (c) 2017 NAVER Corp.
 	  return _obj;
 	}
 
+	function setPersistState(key, value) {
+	  try {
+	    setStateByKey(CONST_PERSIST_STATE, key, value);
+	  } catch (e) {
+	    if (clearFirst()) {
+	      if (key === CONST_LAST_URL) {
+	        setPersistState(key, value);
+	      } else if (key === CONST_DEPTHS) {
+	        setPersistState(key, value && value.slice(1));
+	      }
+	    } else {
+	      // There is no more size to fit in.
+	      throw e;
+	    }
+	  }
+	}
+
+	function getPersistState(key) {
+	  return getStateByKey(CONST_PERSIST_STATE, key);
+	}
+
 	function updateDepth(type) {
 	  var url = getUrl();
 
@@ -243,17 +264,14 @@ Copyright (c) 2017 NAVER Corp.
 
 
 	  currentUrl = url;
-	  var depths = getStateByKey(CONST_PERSIST_STATE, CONST_DEPTHS) || [];
+	  var depths = getPersistState(CONST_DEPTHS) || [];
 
 	  if (type === TYPE_BACK_FORWARD) {
 	    // Change current url only
 	    var currentIndex = depths.indexOf(currentUrl);
-
-	    if (~currentIndex) {
-	      setStateByKey(CONST_PERSIST_STATE, CONST_LAST_URL, currentUrl);
-	    }
+	    ~currentIndex && setPersistState(CONST_LAST_URL, currentUrl);
 	  } else {
-	    var prevLastUrl = getStateByKey(CONST_PERSIST_STATE, CONST_LAST_URL);
+	    var prevLastUrl = getPersistState(CONST_LAST_URL);
 	    reset(getStorageKey(currentUrl));
 
 	    if (type === TYPE_NAVIGATE && url !== prevLastUrl) {
@@ -267,21 +285,47 @@ Copyright (c) 2017 NAVER Corp.
 	      var _currentIndex = depths.indexOf(currentUrl);
 
 	      ~_currentIndex && depths.splice(_currentIndex, 1);
-	      setStateByKey(CONST_PERSIST_STATE, CONST_DEPTHS, depths);
 	    } // Add depth for new address.
 
 
 	    if (depths.indexOf(url) < 0) {
 	      depths.push(url);
-	      setStateByKey(CONST_PERSIST_STATE, CONST_DEPTHS, depths);
 	    }
 
-	    setStateByKey(CONST_PERSIST_STATE, CONST_LAST_URL, url);
+	    setPersistState(CONST_DEPTHS, depths);
+	    setPersistState(CONST_LAST_URL, url);
 	  }
 	}
 
+	function clearFirst() {
+	  var depths = getPersistState(CONST_DEPTHS) || [];
+	  var removed = depths.splice(0, 1);
+
+	  if (!removed.length) {
+	    // There is an error because there is no depth to add data.
+	    return false;
+	  }
+
+	  var removedUrl = removed[0];
+	  reset(getStorageKey(removedUrl));
+
+	  if (currentUrl === removedUrl) {
+	    currentUrl = "";
+	    setPersistState(CONST_LAST_URL, "");
+
+	    if (!depths.length) {
+	      // I tried to add myself, but it didn't add up, so I got an error.
+	      return false;
+	    }
+	  }
+
+	  setPersistState(CONST_DEPTHS, depths); // Clear the previous record and try to add data again.
+
+	  return true;
+	}
+
 	function _clear() {
-	  var depths = getStateByKey(CONST_PERSIST_STATE, CONST_DEPTHS) || [];
+	  var depths = getPersistState(CONST_DEPTHS) || [];
 	  depths.forEach(function (url) {
 	    reset(getStorageKey(url));
 	  });
@@ -391,10 +435,19 @@ Copyright (c) 2017 NAVER Corp.
 	      var key = this.key;
 	      var globalState = getStateByKey(urlKey, key);
 
-	      if (path.length === 0) {
-	        setStateByKey(urlKey, key, value);
-	      } else {
-	        setStateByKey(urlKey, key, setRec(globalState, path.split("."), value));
+	      try {
+	        if (path.length === 0) {
+	          setStateByKey(urlKey, key, value);
+	        } else {
+	          setStateByKey(urlKey, key, setRec(globalState, path.split("."), value));
+	        }
+	      } catch (e) {
+	        if (clearFirst(e)) {
+	          this.set(path, value);
+	        } else {
+	          // There is no more size to fit in.
+	          throw e;
+	        }
 	      }
 
 	      return this;

@@ -593,7 +593,7 @@ describe("Persist", () => {
 			});
 		});
 	});
-	describe.only("test exceed", () => {
+	describe("test exceed", () => {
 		const pathname = location.pathname;
 
 		beforeEach(() => {

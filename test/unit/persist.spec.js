@@ -593,14 +593,16 @@ describe("Persist", () => {
 			});
 		});
 	});
-	describe("test exceed", () => {
+	describe.only("test exceed", () => {
 		const pathname = location.pathname;
 
 		beforeEach(() => {
 			Persist.clear();
 		});
-		afterEach(() => {
+		afterEach(async () => {
 			history.replaceState({}, "", pathname);
+			history.go(history.length - 1);
+			await wait();
 		});
 
 		it(`test depth test for exceed test (depths limit: 0)`, () => {
@@ -780,8 +782,10 @@ describe("Persist", () => {
 		beforeEach(() => {
 			Persist.clear();
 		});
-		afterEach(() => {
+		afterEach(async () => {
 			history.replaceState({}, "", pathname);
+			history.go(history.length - 1);
+			await wait();
 		});
 		it("test depth start -> a -> b -> c", () => {
 			// Given

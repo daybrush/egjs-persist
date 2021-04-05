@@ -27,7 +27,6 @@ const PersistUsingHistory = PersistInjector(
 	}
 );
 
-
 describe("Persist", () => {
 	describe("isNeeded", () => {
 		it("isNeeded on chrome", () => {
@@ -595,14 +594,20 @@ describe("Persist", () => {
 	});
 	describe("test exceed", () => {
 		const pathname = location.pathname;
+		const startIndex = history.length;
 
 		beforeEach(() => {
 			Persist.clear();
 		});
 		afterEach(async () => {
-			history.replaceState({}, "", pathname);
-			history.go(history.length - 1);
-			await wait();
+			history.pushState({}, "", pathname);
+			const length = history.length;
+
+			if (length > startIndex) {
+				history.go(-length + startIndex);
+				await wait();
+				history.pushState({}, "", pathname);
+			}
 		});
 
 		it(`test depth test for exceed test (depths limit: 0)`, () => {
@@ -778,14 +783,20 @@ describe("Persist", () => {
 	});
 	describe("test depth", () => {
 		const pathname = location.pathname;
+		const startIndex = history.length;
 
 		beforeEach(() => {
 			Persist.clear();
 		});
 		afterEach(async () => {
-			history.replaceState({}, "", pathname);
-			history.go(history.length - 1);
-			await wait();
+			history.pushState({}, "", pathname);
+			const length = history.length;
+
+			if (length > startIndex) {
+				history.go(-length + startIndex);
+				await wait();
+				history.pushState({}, "", pathname);
+			}
 		});
 		it("test depth start -> a -> b -> c", () => {
 			// Given
